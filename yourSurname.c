@@ -6,7 +6,7 @@ struct tablo {
     int * tab;
     int size;
 };
-#define MINGLOBAL INT32_MIN
+#define MINGLOBAL -2147483640
 int max(int a, int b){
     if (a>b){
         return a;
@@ -24,18 +24,18 @@ void printArray(struct tablo * tmp) {
     printf("\n");
 }
 void montee(struct tablo * source, struct tablo * destination) {
-        destination->tab[0] = 0;
-        for (int p = 0; p < source->size; p++) {
-            destination->tab[p + source->size] = source->tab[p];
+    destination->tab[0] = 0;
+    for (int p = 0; p < source->size; p++) {
+        destination->tab[p + source->size] = source->tab[p];
+    }
+    for (int l = log2(source->size) - 1; l >= 0; l--) {
+        int inf = pow(2, l);
+        int sup = pow(2, l + 1);
+        #pragma omp parallel for
+        for (int j = inf; j < sup; j++) {
+            destination->tab[j] = destination->tab[2 * j] + destination->tab[2 * j + 1];
         }
-        for (int l = log2(source->size) - 1; l >= 0; l--) {
-            int inf = pow(2, l);
-            int sup = pow(2, l + 1);
-            #pragma omp parallel for
-            for (int j = inf; j < sup; j++) {
-                destination->tab[j] = destination->tab[2 * j] + destination->tab[2 * j + 1];
-            }
-        }
+    }
 }
 void monteeMAX(struct tablo * source, struct tablo * destination) {
     destination->tab[0] = MINGLOBAL;
@@ -54,19 +54,19 @@ void monteeMAX(struct tablo * source, struct tablo * destination) {
 
 }
 void descenteSuffixe(struct tablo * a, struct tablo * b) {
-        b->tab[1]=0;
-        for(int l=1;l<=log2(a->size/2);l++){
-            int inf = pow(2,l);
-            int sup = pow(2,l+1);
-            #pragma omp parallel for
-            for(int j = sup-1;j>=inf;j--){
-                if(j%2==1){
-                    b->tab[j]=b->tab[(j-1)/2];
-                }
-                else{b->tab[j]=b->tab[j/2]+a->tab[j+1];}
+    b->tab[1]=0;
+    for(int l=1;l<=log2(a->size/2);l++){
+        int inf = pow(2,l);
+        int sup = pow(2,l+1);
+        #pragma omp parallel for
+        for(int j = sup-1;j>=inf;j--){
+            if(j%2==1){
+                b->tab[j]=b->tab[(j-1)/2];
             }
-
+            else{b->tab[j]=b->tab[j/2]+a->tab[j+1];}
         }
+
+    }
 }
 void descenteSuffixeMAX(struct tablo * a, struct tablo * b) {
     b->tab[1]=MINGLOBAL;
@@ -85,26 +85,26 @@ void descenteSuffixeMAX(struct tablo * a, struct tablo * b) {
 }
 void descente(struct tablo * a, struct tablo * c) {
     c->tab[1]=0;
-        for(int l=1;l<=log2(a->size/2);l++){
-            int inf = pow(2,l);
-            int sup = pow(2,l+1);
-            #pragma omp parallel for
-            for(int j = inf;j<sup;j++){
-                if(j%2==0){
-                    c->tab[j]=c->tab[j / 2];
-                }
-                else{ c->tab[j]= c->tab[(j - 1) / 2] + a->tab[j - 1];}
+    for(int l=1;l<=log2(a->size/2);l++){
+        int inf = pow(2,l);
+        int sup = pow(2,l+1);
+        #pragma omp parallel for
+        for(int j = inf;j<sup;j++){
+            if(j%2==0){
+                c->tab[j]=c->tab[j / 2];
             }
-
+            else{ c->tab[j]= c->tab[(j - 1) / 2] + a->tab[j - 1];}
         }
 
     }
+
+}
 void descenteMAX(struct tablo * a, struct tablo * c) {
     c->tab[1]=MINGLOBAL;
     for(int l=1;l<=log2(a->size/2);l++){
         int inf = pow(2,l);
         int sup = pow(2,l+1);
-        #pragma omp parallel for
+    #pragma omp parallel for
         for(int j = inf;j<sup;j++){
             if(j%2==0){
                 c->tab[j]=c->tab[j / 2];
@@ -148,7 +148,7 @@ void initializeValgrind(struct tablo * dest){
     #pragma omp parallel for
     for (int i = 0; i < dest->size; i++) {
         dest->tab[i] = 0;
-        }
+    }
 
 }
 void inititalizeValgrindMax(struct tablo * dest){
@@ -258,7 +258,7 @@ int countInt(char * threads){
         count++;
 
     return count;
-    }
+}
 
 int main(int argc, char **argv){
     char * threads ="";
@@ -314,8 +314,8 @@ int main(int argc, char **argv){
         #pragma omp critical
         {
             if(MaxValue >= MaxGlobalValue) {
-                if(MaxValue==MaxGlobalValue & index<MaxGlobalIndex){
-                    MaxGlobalIndex = index; 
+                if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
+                    MaxGlobalIndex = index;
                 }
                 else{
                     MaxGlobalValue = MaxValue;
@@ -338,8 +338,8 @@ int main(int argc, char **argv){
                 break;
             }
             else pointeur--;
+        }
     }
-}
 
     while(pointeur2 < M->size){
         if (!(M->tab[pointeur2] == MaxGlobalValue)){
@@ -351,8 +351,8 @@ int main(int argc, char **argv){
                 break;
             }
             else pointeur2++;
-            }
         }
+    }
     int MinIterator = pointeur;
     int MaxIterator = pointeur2;
     printf("\n%d ",MaxGlobalValue);
