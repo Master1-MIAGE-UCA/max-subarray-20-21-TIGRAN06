@@ -104,7 +104,7 @@ void descenteMAX(struct tablo * a, struct tablo * c) {
     for(int l=1;l<=log2(a->size/2);l++){
         int inf = pow(2,l);
         int sup = pow(2,l+1);
-    #pragma omp parallel for
+        #pragma omp parallel for
         for(int j = inf;j<sup;j++){
             if(j%2==0){
                 c->tab[j]=c->tab[j / 2];
