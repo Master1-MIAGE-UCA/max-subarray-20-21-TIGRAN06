@@ -1,1 +1,41 @@
-VOID
+int max(...) non parallel
+
+printArray(...) non parallel
+
+void montee(...) parallel
+
+void monteeMAX(...) parallel
+
+void descenteSuffixe(...) parallel
+
+void descenteSuffixeMAX(...) parallel
+
+void descente(...) parallel
+
+void descenteMAX(...) parallel
+
+void final(...) parallel
+
+void finalMAX(...) parallel
+
+void generateArray(...) non parallel
+
+void initializeValgrind(...) parallel
+
+void inititalizeValgrindMax(...) parallel
+
+void MakeArray(...) non parallel
+
+void MakeArrayMAX(...) non parallel
+
+void scan_prefixe(...) parallel
+
+void scan_suffixe(...) parallel
+
+void scan_prefixeMAX(...) parallel
+
+void scan_suffixeMAX(...) parallel
+
+int countInt(...) non parallel
+
+int main(...) parallel
