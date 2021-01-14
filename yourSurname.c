@@ -383,5 +383,9 @@ int main(int argc, char **argv){
     free(SSUM->tab);
     free(PMAX->tab);
     free(SMAX->tab);
-
+    free(M);
+    free(PSUM);
+    free(SSUM);
+    free(PMAX);
+    free(SMAX);
 }
