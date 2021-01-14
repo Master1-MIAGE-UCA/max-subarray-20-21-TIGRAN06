@@ -263,12 +263,21 @@ int countInt(char * threads){
 int main(int argc, char **argv){
     char * threads ="";
     if (argc>1) {
-        threads= argv[1];
-
-    }
-    int size =countInt(threads);
+        threads= argv[1];}
+    else {printf("WARNING No input parameter exit status 1");
+            exit(1);}
     struct tablo Q;
-    generateArray(&Q, threads, size);
+    FILE* fileTest = fopen(threads, "r");
+    fseek(fileTest, 0L, SEEK_END);
+    Q.size = ftell(fileTest);
+    fseek(fileTest, 0L, SEEK_SET);
+    int count = 0;
+    Q.tab = malloc(Q.size * sizeof(int));
+    while (fscanf(fileTest, "%d", &Q.tab[count]) == 1) {
+        count++;
+    }
+    fclose(fileTest);
+    Q.size = count;
     //printArray(&Q);
     struct tablo * PSUM = malloc(sizeof(struct tablo));
     MakeArray(&Q, PSUM);
@@ -304,24 +313,22 @@ int main(int argc, char **argv){
     {
         int MaxValue = 0;
         int index = 0;
-        #pragma omp for nowait
         for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
             if (M->tab[indexIterator] > MaxValue) {
                 MaxValue = M->tab[indexIterator];
                 index = indexIterator;
             }
-        }
-        #pragma omp critical
-        {
-            if(MaxValue >= MaxGlobalValue) {
-                if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
-                    MaxGlobalIndex = index;
+            #pragma omp critical
+            {
+                if(MaxValue >= MaxGlobalValue) {
+                    if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
+                        MaxGlobalIndex = index;
+                    }
+                    else{
+                        MaxGlobalValue = MaxValue;
+                        MaxGlobalIndex = index;}
                 }
-                else{
-                    MaxGlobalValue = MaxValue;
-                    MaxGlobalIndex = index;}
             }
-
         }
     }
 
