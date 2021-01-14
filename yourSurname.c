@@ -184,6 +184,8 @@ void scan_prefixe(struct tablo *source, struct tablo *dest){
     for (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i + source->size];
     }
+    free(a->tab);
+    free(b->tab);
     free(a);
     free(b);
 }
@@ -204,6 +206,8 @@ void scan_suffixe(struct tablo *source, struct tablo *dest){
     for (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i + source->size];
     }
+    free(a->tab);
+    free(b->tab);
     free(a);
     free(b);
 }
@@ -224,6 +228,8 @@ void scan_prefixeMAX(struct tablo *source, struct tablo *dest){
     for (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i +  source->size];
     }
+    free(a->tab);
+    free(b->tab);
     free(a);
     free(b);
 }
@@ -245,6 +251,8 @@ void scan_suffixeMAX(struct tablo *source, struct tablo *dest){
     for (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i +  source->size];
     }
+    free(a->tab);
+    free(b->tab);
     free(a);
     free(b);
 }
@@ -266,6 +274,7 @@ int main(int argc, char **argv){
         threads= argv[1];}
     else {printf("WARNING No input parameter exit status 1");
             exit(1);}
+
     struct tablo Q;
     FILE* fileTest = fopen(threads, "r");
     fseek(fileTest, 0L, SEEK_END);
@@ -313,22 +322,23 @@ int main(int argc, char **argv){
     {
         int MaxValue = 0;
         int index = 0;
+        #pragma omp critical
         for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
             if (M->tab[indexIterator] > MaxValue) {
                 MaxValue = M->tab[indexIterator];
                 index = indexIterator;
             }
-            #pragma omp critical
-            {
-                if(MaxValue >= MaxGlobalValue) {
-                    if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
-                        MaxGlobalIndex = index;
-                    }
-                    else{
-                        MaxGlobalValue = MaxValue;
-                        MaxGlobalIndex = index;}
+        }
+        {
+            if(MaxValue >= MaxGlobalValue) {
+                if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
+                    MaxGlobalIndex = index;
                 }
+                else{
+                    MaxGlobalValue = MaxValue;
+                    MaxGlobalIndex = index;}
             }
+
         }
     }
 
@@ -367,4 +377,11 @@ int main(int argc, char **argv){
         printf("%d ", Q.tab[i]);
     }
     printf("%d", Q.tab[MaxIterator]);
+    free(Q.tab);
+    free(M->tab);
+    free(PSUM->tab);
+    free(SSUM->tab);
+    free(PMAX->tab);
+    free(SMAX->tab);
+
 }
