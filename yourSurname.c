@@ -143,41 +143,24 @@ void generateArray(struct tablo * s,char * threads,int size){
     {
         fscanf(myFile, "%d", &s->tab[i]);
     }
-}
-void initializeValgrind(struct tablo * dest){
-    #pragma omp parallel for
-    for (int i = 0; i < dest->size; i++) {
-        dest->tab[i] = 0;
-    }
-
-}
-void inititalizeValgrindMax(struct tablo * dest){
-    #pragma omp parallel for
-    for (int i = 0; i < dest->size; i++) {
-        dest->tab[i] = MINGLOBAL;
-    }
-
-}
-void MakeArray(struct tablo * source, struct tablo * dest){
-    dest->size =source->size;
-    dest->tab=malloc(dest->size * sizeof(int));
-    initializeValgrind(dest);
-}
-void MakeArrayMAX(struct tablo * source, struct tablo * dest){
-    dest->size =source->size;
-    dest->tab=malloc(dest->size * sizeof(int));
-    inititalizeValgrindMax(dest);
+    free(myFile);
 }
 void scan_prefixe(struct tablo *source, struct tablo *dest){
     struct tablo * a = malloc(sizeof(struct tablo));
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
-    initializeValgrind(a);
+    #pragma omp parallel for
+    for (int i = 0; i < a->size; i++) {
+        a->tab[i] = 0;
+    }
     montee(source, a);
     struct tablo * b = malloc(sizeof(struct tablo));
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
-    initializeValgrind(b);
+    #pragma omp parallel for
+    for (int i = 0; i < b->size; i++) {
+        b->tab[i] = 0;
+    }
     descente(a, b);
     final(a,b);
     #pragma omp parallel for
@@ -193,12 +176,18 @@ void scan_suffixe(struct tablo *source, struct tablo *dest){
     struct tablo * a = malloc(sizeof(struct tablo));
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
-    initializeValgrind(a);
+    #pragma omp parallel for
+    for (int i = 0; i < a->size; i++) {
+        a->tab[i] = 0;
+    }
     montee(source, a);
     struct tablo * b = malloc(sizeof(struct tablo));
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
-    initializeValgrind(b);
+    #pragma omp parallel for
+    for (int i=0; i < dest->size; i++){
+        dest->tab[i]=b->tab[i + source->size];
+    }
     descenteSuffixe(a, b);
     final(a,b);
 
@@ -215,13 +204,19 @@ void scan_prefixeMAX(struct tablo *source, struct tablo *dest){
     struct tablo * a = malloc(sizeof(struct tablo));
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
-    inititalizeValgrindMax(a);
+    #pragma omp parallel for
+    for (int i = 0; i < a->size; i++) {
+        a->tab[i] = MINGLOBAL;
+    }
     monteeMAX(source, a);
 
     struct tablo * b = malloc(sizeof(struct tablo));
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
-    inititalizeValgrindMax(b);
+    #pragma omp parallel for
+    for (int i = 0; i < b->size; i++) {
+        b->tab[i] = MINGLOBAL;
+    }
     descenteMAX(a, b);
     finalMAX(a,b);
     #pragma omp parallel for
@@ -237,13 +232,19 @@ void scan_suffixeMAX(struct tablo *source, struct tablo *dest){
     struct tablo * a = malloc(sizeof(struct tablo));
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
-    inititalizeValgrindMax(a);
+    #pragma omp parallel for
+    for (int i = 0; i < a->size; i++) {
+        a->tab[i] = MINGLOBAL;
+    }
     monteeMAX(source, a);
 
     struct tablo * b = malloc(sizeof(struct tablo));
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
-    inititalizeValgrindMax(b);
+    #pragma omp parallel for
+    for (int i=0; i < dest->size; i++){
+        dest->tab[i]=b->tab[i +  source->size];
+    }
     descenteSuffixeMAX(a, b);
 
     finalMAX(a,b);
@@ -256,24 +257,13 @@ void scan_suffixeMAX(struct tablo *source, struct tablo *dest){
     free(a);
     free(b);
 }
-int countInt(char * threads){
-    FILE* file;
-    int array[100000];
-    int count = 0;
-    file = fopen(threads,"r");
-
-    while(fscanf(file, "%d", &array[count]) == 1)
-        count++;
-
-    return count;
-}
 
 int main(int argc, char **argv){
     char * threads ="";
     if (argc>1) {
         threads= argv[1];}
     else {printf("WARNING No input parameter exit status 1");
-            exit(1);}
+        exit(1);}
 
     struct tablo Q;
     FILE* fileTest = fopen(threads, "r");
@@ -289,27 +279,52 @@ int main(int argc, char **argv){
     Q.size = count;
     //printArray(&Q);
     struct tablo * PSUM = malloc(sizeof(struct tablo));
-    MakeArray(&Q, PSUM);
+    PSUM->size =Q.size;
+    PSUM->tab=malloc(PSUM->size * sizeof(int));
+    #pragma omp parallel for
+    for (int i = 0; i < PSUM->size; i++) {
+        PSUM->tab[i] = 0;
+    }
     scan_prefixe(&Q, PSUM);
     //printArray(PSUM);
 
     struct tablo * SSUM = malloc(sizeof(struct tablo));
-    MakeArray(&Q, SSUM);
+    SSUM->size =Q.size;
+    SSUM->tab=malloc(SSUM->size * sizeof(int));
+    #pragma omp parallel for
+    for (int i = 0; i < SSUM->size; i++) {
+        SSUM->tab[i] = 0;
+    }
     scan_suffixe(&Q, SSUM);
     //printArray(SSUM);
 
     struct tablo * SMAX = malloc(sizeof(struct tablo));
-    MakeArrayMAX(&Q, SMAX);
+    SMAX->size =Q.size;
+    SMAX->tab=malloc(SMAX->size * sizeof(int));
+    #pragma omp parallel for
+    for (int i = 0; i < SMAX->size; i++) {
+        SMAX->tab[i] = 0;
+    }
     scan_suffixeMAX(PSUM, SMAX);
     //printArray(SMAX);
 
     struct tablo * PMAX = malloc(sizeof(struct tablo));
-    MakeArrayMAX(&Q, PMAX);
+    PMAX->size =Q.size;
+    PMAX->tab=malloc(PMAX->size * sizeof(int));
+    #pragma omp parallel for
+    for (int i = 0; i < SMAX->size; i++) {
+        PMAX->tab[i] = 0;
+    }
     scan_prefixeMAX(SSUM, PMAX);
     //printArray(PMAX);
 
     struct tablo * M = malloc(sizeof(struct tablo));
-    MakeArray(&Q, M);
+    M->size =Q.size;
+    M->tab=malloc(M->size * sizeof(int));
+    #pragma omp parallel for
+    for (int i = 0; i < M->size; i++) {
+        M->tab[i] = 0;
+    }
 
     #pragma omp parallel for
     for (int i=0; i < Q.size; i++) {
@@ -318,46 +333,39 @@ int main(int argc, char **argv){
     //printArray(M);
     int MaxGlobalValue = 0;
     int MaxGlobalIndex =0;
-    #pragma omp parallel
-    {
-        int MaxValue = 0;
-        int index = 0;
-        #pragma omp critical
-        for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
-            if (M->tab[indexIterator] > MaxValue) {
-                MaxValue = M->tab[indexIterator];
-                index = indexIterator;
-            }
-        }
-        {
-            if(MaxValue >= MaxGlobalValue) {
-                if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
-                    MaxGlobalIndex = index;
-                }
-                else{
-                    MaxGlobalValue = MaxValue;
-                    MaxGlobalIndex = index;}
-            }
 
+    int MaxValue = 0;
+    int index = Q.size;
+    #pragma omp parallel for reduction(max:MaxValue)
+    for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
+        //printf("%d",omp_get_thread_num());
+        if (M->tab[indexIterator] > MaxValue) {
+            MaxValue = M->tab[indexIterator];
         }
     }
+    #pragma omp parallel for reduction(min:index)
+    for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
+        //printf("   %d  ",index);
+        if (M->tab[indexIterator] == MaxValue) {
+            if(index>indexIterator){
+                index=indexIterator;
+            }
+        }
+    }
+    //printf(" FINAL  %d  ",index);
+    if(MaxValue >= MaxGlobalValue) {
+        if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
+            MaxGlobalIndex = index;
+        }
+        else{
+            MaxGlobalValue = MaxValue;
+            MaxGlobalIndex = index;}
+    }
 
-    int pointeur= MaxGlobalIndex;
+
+
+    int pointeur= index;
     int pointeur2= MaxGlobalIndex;
-    while(pointeur>0){
-        if (!(M->tab[pointeur] == MaxGlobalValue)){
-            pointeur++;
-            break;
-        }
-        else {
-            if (pointeur==-1){
-                pointeur++;
-                break;
-            }
-            else pointeur--;
-        }
-    }
-
     while(pointeur2 < M->size){
         if (!(M->tab[pointeur2] == MaxGlobalValue)){
             pointeur2--;
@@ -372,7 +380,7 @@ int main(int argc, char **argv){
     }
     int MinIterator = pointeur;
     int MaxIterator = pointeur2;
-    printf("\n%d ",MaxGlobalValue);
+    printf("%d ",MaxGlobalValue);
     for (int i=MinIterator;i<MaxIterator;i++){
         printf("%d ", Q.tab[i]);
     }
