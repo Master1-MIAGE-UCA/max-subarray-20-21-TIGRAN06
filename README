@@ -20,14 +20,6 @@ void finalMAX(...) parallel
 
 void generateArray(...) non parallel
 
-void initializeValgrind(...) parallel
-
-void inititalizeValgrindMax(...) parallel
-
-void MakeArray(...) non parallel
-
-void MakeArrayMAX(...) non parallel
-
 void scan_prefixe(...) parallel
 
 void scan_suffixe(...) parallel
@@ -35,7 +27,5 @@ void scan_suffixe(...) parallel
 void scan_prefixeMAX(...) parallel
 
 void scan_suffixeMAX(...) parallel
-
-int countInt(...) non parallel
 
 int main(...) parallel
