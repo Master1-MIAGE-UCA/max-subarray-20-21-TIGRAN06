@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include <math.h>
+
 struct tablo {
     int * tab;
     int size;
@@ -42,7 +43,6 @@ void monteeMAX(struct tablo * source, struct tablo * destination) {
     for (int p = 0; p < source->size; p++) {
         destination->tab[p + source->size] = source->tab[p];
     }
-
     for (int l = log2(source->size) - 1; l >= 0; l--) {
         int inf = pow(2, l);
         int sup = pow(2, l + 1);
@@ -53,6 +53,10 @@ void monteeMAX(struct tablo * source, struct tablo * destination) {
     }
 
 }
+//Descente suffix de la meme maniere que prefix sauf qu'on utilise la symétrie au lieu de faire un reverse de façon naif
+//
+//Du coup on descends dans la arbre si on est le fils droit on prends la valeur du pere sinon on prends la valeur du pere + la valeur de son frere dans l'autre arbre
+//
 void descenteSuffixe(struct tablo * a, struct tablo * b) {
     b->tab[1]=0;
     for(int l=1;l<=log2(a->size/2);l++){
@@ -67,7 +71,10 @@ void descenteSuffixe(struct tablo * a, struct tablo * b) {
         }
 
     }
-}
+}//Descente suffix de la meme maniere que prefix sauf qu'on utilise la symétrie au lieu de faire un reverse de façon naif
+//
+//Du coup on descends dans la arbre si on est le fils droit on prends la valeur du pere sinon on prends le max de la valeur du pere et la valeur de son frere dans l'autre arbre
+//
 void descenteSuffixeMAX(struct tablo * a, struct tablo * b) {
     b->tab[1]=MINGLOBAL;
     for(int l=1;l<=log2(a->size/2);l++){
@@ -83,6 +90,11 @@ void descenteSuffixeMAX(struct tablo * a, struct tablo * b) {
 
     }
 }
+
+//Descente prefix
+//
+//Du coup on descends dans la arbre si on est le fils gauche on prends la valeur du pere sinon on prends la valeur du pere + la valeur de son frere dans l'autre arbre
+//
 void descente(struct tablo * a, struct tablo * c) {
     c->tab[1]=0;
     for(int l=1;l<=log2(a->size/2);l++){
@@ -99,6 +111,10 @@ void descente(struct tablo * a, struct tablo * c) {
     }
 
 }
+//Descente prefix
+//
+//Du coup on descends dans la arbre si on est le fils gauche on prends la valeur du pere sinon on prends le mac de la valeur du pere et la valeur de son frere dans l'autre arbre
+//
 void descenteMAX(struct tablo * a, struct tablo * c) {
     c->tab[1]=MINGLOBAL;
     for(int l=1;l<=log2(a->size/2);l++){
@@ -120,7 +136,7 @@ void final(struct tablo * a, struct tablo *b) {
     int sup = pow(2,log2(a->size/2)+1);
 
     #pragma omp parallel for
-    for(int j=inf;j<sup;j++){
+    for (int j=inf;j<sup;j++){
         b->tab[j]=b->tab[j]+a->tab[j];
     }
 }
@@ -129,7 +145,7 @@ void finalMAX(struct tablo * a, struct tablo *b) {
     int sup = pow(2,log2(a->size/2)+1);
 
     #pragma omp parallel for
-    for(int j=inf;j<sup;j++){
+    for (int j=inf;j<sup;j++){
         b->tab[j]=max(b->tab[j],a->tab[j]);
     }
 }
@@ -145,12 +161,14 @@ void generateArray(struct tablo * s,char * threads,int size){
     }
     free(myFile);
 }
+
+//l'algorithm Perumalla et al est vraiment rapide en parallel
 void scan_prefixe(struct tablo *source, struct tablo *dest){
     struct tablo * a = malloc(sizeof(struct tablo));
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
     #pragma omp parallel for
-    for (int i = 0; i < a->size; i++) {
+    for  (int i = 0; i < a->size; i++) {
         a->tab[i] = 0;
     }
     montee(source, a);
@@ -158,13 +176,13 @@ void scan_prefixe(struct tablo *source, struct tablo *dest){
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
     #pragma omp parallel for
-    for (int i = 0; i < b->size; i++) {
+    for  (int i = 0; i < b->size; i++) {
         b->tab[i] = 0;
     }
     descente(a, b);
     final(a,b);
     #pragma omp parallel for
-    for (int i=0; i < dest->size; i++){
+    for  (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i + source->size];
     }
     free(a->tab);
@@ -177,7 +195,7 @@ void scan_suffixe(struct tablo *source, struct tablo *dest){
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
     #pragma omp parallel for
-    for (int i = 0; i < a->size; i++) {
+    for  (int i = 0; i < a->size; i++) {
         a->tab[i] = 0;
     }
     montee(source, a);
@@ -185,14 +203,14 @@ void scan_suffixe(struct tablo *source, struct tablo *dest){
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
     #pragma omp parallel for
-    for (int i=0; i < dest->size; i++){
+    for  (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i + source->size];
     }
     descenteSuffixe(a, b);
     final(a,b);
 
     #pragma omp parallel for
-    for (int i=0; i < dest->size; i++){
+    for  (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i + source->size];
     }
     free(a->tab);
@@ -205,7 +223,7 @@ void scan_prefixeMAX(struct tablo *source, struct tablo *dest){
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
     #pragma omp parallel for
-    for (int i = 0; i < a->size; i++) {
+    for  (int i = 0; i < a->size; i++) {
         a->tab[i] = MINGLOBAL;
     }
     monteeMAX(source, a);
@@ -214,13 +232,13 @@ void scan_prefixeMAX(struct tablo *source, struct tablo *dest){
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
     #pragma omp parallel for
-    for (int i = 0; i < b->size; i++) {
+    for  (int i = 0; i < b->size; i++) {
         b->tab[i] = MINGLOBAL;
     }
     descenteMAX(a, b);
     finalMAX(a,b);
     #pragma omp parallel for
-    for (int i=0; i < dest->size; i++){
+    for  (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i +  source->size];
     }
     free(a->tab);
@@ -233,7 +251,7 @@ void scan_suffixeMAX(struct tablo *source, struct tablo *dest){
     a->tab = malloc(source->size*2*sizeof(int));
     a->size =source->size*2;
     #pragma omp parallel for
-    for (int i = 0; i < a->size; i++) {
+    for  (int i = 0; i < a->size; i++) {
         a->tab[i] = MINGLOBAL;
     }
     monteeMAX(source, a);
@@ -242,14 +260,14 @@ void scan_suffixeMAX(struct tablo *source, struct tablo *dest){
     b->tab= malloc(source->size*2*sizeof(int));
     b->size=source->size*2;
     #pragma omp parallel for
-    for (int i=0; i < dest->size; i++){
+    for  (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i +  source->size];
     }
     descenteSuffixeMAX(a, b);
 
     finalMAX(a,b);
     #pragma omp parallel for
-    for (int i=0; i < dest->size; i++){
+    for  (int i=0; i < dest->size; i++){
         dest->tab[i]=b->tab[i +  source->size];
     }
     free(a->tab);
@@ -282,7 +300,7 @@ int main(int argc, char **argv){
     PSUM->size =Q.size;
     PSUM->tab=malloc(PSUM->size * sizeof(int));
     #pragma omp parallel for
-    for (int i = 0; i < PSUM->size; i++) {
+    for  (int i = 0; i < PSUM->size; i++) {
         PSUM->tab[i] = 0;
     }
     scan_prefixe(&Q, PSUM);
@@ -292,7 +310,7 @@ int main(int argc, char **argv){
     SSUM->size =Q.size;
     SSUM->tab=malloc(SSUM->size * sizeof(int));
     #pragma omp parallel for
-    for (int i = 0; i < SSUM->size; i++) {
+    for  (int i = 0; i < SSUM->size; i++) {
         SSUM->tab[i] = 0;
     }
     scan_suffixe(&Q, SSUM);
@@ -302,7 +320,7 @@ int main(int argc, char **argv){
     SMAX->size =Q.size;
     SMAX->tab=malloc(SMAX->size * sizeof(int));
     #pragma omp parallel for
-    for (int i = 0; i < SMAX->size; i++) {
+    for  (int i = 0; i < SMAX->size; i++) {
         SMAX->tab[i] = 0;
     }
     scan_suffixeMAX(PSUM, SMAX);
@@ -312,7 +330,7 @@ int main(int argc, char **argv){
     PMAX->size =Q.size;
     PMAX->tab=malloc(PMAX->size * sizeof(int));
     #pragma omp parallel for
-    for (int i = 0; i < SMAX->size; i++) {
+    for  (int i = 0; i < SMAX->size; i++) {
         PMAX->tab[i] = 0;
     }
     scan_prefixeMAX(SSUM, PMAX);
@@ -322,20 +340,20 @@ int main(int argc, char **argv){
     M->size =Q.size;
     M->tab=malloc(M->size * sizeof(int));
     #pragma omp parallel for
-    for (int i = 0; i < M->size; i++) {
+    for  (int i = 0; i < M->size; i++) {
         M->tab[i] = 0;
     }
 
     #pragma omp parallel for
-    for (int i=0; i < Q.size; i++) {
+    for  (int i=0; i < Q.size; i++) {
         M->tab[i] = SMAX->tab[i] - PSUM->tab[i] + Q.tab[i] + PMAX->tab[i] - SSUM->tab[i];
     }
     //printArray(M);
-    int MaxGlobalValue = 0;
-    int MaxGlobalIndex =0;
-
     int MaxValue = 0;
     int index = Q.size;
+
+    // STEP 6 with reduction
+    // On cherche d'abord la valeur maximal en utilisant reduction
     #pragma omp parallel for reduction(max:MaxValue)
     for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
         //printf("%d",omp_get_thread_num());
@@ -343,6 +361,7 @@ int main(int argc, char **argv){
             MaxValue = M->tab[indexIterator];
         }
     }
+    //on cherche l'element dans le table ayant la meme valeur que MaxValue mais ayant l'indice minimal
     #pragma omp parallel for reduction(min:index)
     for (int indexIterator = 0; indexIterator < M->size; ++indexIterator) {
         //printf("   %d  ",index);
@@ -352,39 +371,27 @@ int main(int argc, char **argv){
             }
         }
     }
-    //printf(" FINAL  %d  ",index);
-    if(MaxValue >= MaxGlobalValue) {
-        if((MaxValue==MaxGlobalValue) & (index<MaxGlobalIndex)){
-            MaxGlobalIndex = index;
-        }
-        else{
-            MaxGlobalValue = MaxValue;
-            MaxGlobalIndex = index;}
-    }
-
-
-
+    // on se position à l'indice minimal dans le tableau M puis avec un pointeur on parcours jusqu'à que la valeur de l'element est differente de max value
     int pointeur= index;
-    int pointeur2= MaxGlobalIndex;
-    while(pointeur2 < M->size){
-        if (!(M->tab[pointeur2] == MaxGlobalValue)){
-            pointeur2--;
+    printf("%d",MaxValue);
+    while(pointeur < M->size){
+        if (!(M->tab[pointeur] == MaxValue)){
+            pointeur--;
             break;
         }
         else {
-            if (pointeur2 == M->size-1){
+            if (pointeur == M->size-1){
+                printf(" %d", Q.tab[pointeur]);
                 break;
             }
-            else pointeur2++;
+            else {
+                if (pointeur <= M->size-1){
+                    printf(" %d", Q.tab[pointeur]);
+                }pointeur++;}
         }
     }
-    int MinIterator = pointeur;
-    int MaxIterator = pointeur2;
-    printf("%d ",MaxGlobalValue);
-    for (int i=MinIterator;i<MaxIterator;i++){
-        printf("%d ", Q.tab[i]);
-    }
-    printf("%d", Q.tab[MaxIterator]);
+
+
     free(Q.tab);
     free(M->tab);
     free(PSUM->tab);
