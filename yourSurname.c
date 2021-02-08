@@ -349,7 +349,7 @@ int main(int argc, char **argv){
         M->tab[i] = SMAX->tab[i] - PSUM->tab[i] + Q.tab[i] + PMAX->tab[i] - SSUM->tab[i];
     }
     //printArray(M);
-    int MaxValue = 0;
+    int MaxValue = MINGLOBAL;
     int index = Q.size;
 
     // STEP 6 with reduction
